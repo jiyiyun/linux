@@ -19,3 +19,20 @@ python 学习，md 文档语法学习
 ``` python
 >>> len(str(2**100))
 31
+>>> import math
+>>> math.pi
+3.141592653589793
+>>> math.sqrt(85)
+9.219544457292887
+>>> import random
+>>> random.random()
+0.9678257723324738
+>>> random.randint(1,10)
+2
+>>> random.randint(1,10)
+5
+>>> random.choice([1,2,3,4])
+3
+>>> random.choice([1,2,3,4])
+4
+
