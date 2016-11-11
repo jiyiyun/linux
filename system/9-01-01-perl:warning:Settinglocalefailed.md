@@ -19,9 +19,9 @@ perl: warning: Please check that your locale settings:
     are supported and installed on your system.
 perl: warning: Falling back to a fallback locale ("en_US.UTF-8").
 ```
-baidu了下
+baidu了下,解决方法，问题解决了
 ``` shell
-- # vi /root/.bashrc
-- export LC_ALL=C
-- # source /root/.bashrc
+# vi /root/.bashrc
+export LC_ALL=C
+# source /root/.bashrc
 ```
