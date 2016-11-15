@@ -1,4 +1,4 @@
-CentOS系统
+磁盘扩容
 ===
 ``` shell
 [root@localhost ~]# fdisk -l
