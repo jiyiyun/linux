@@ -1,6 +1,6 @@
 磁盘扩容
 ===
-``` python
+``` shell
 [root@localhost ~]# fdisk -l
 
 磁盘 /dev/sda：53.7 GB, 53687091200 字节，104857600 个扇区
