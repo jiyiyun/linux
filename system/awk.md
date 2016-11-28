@@ -1,0 +1,32 @@
+awk study
+===
+
+``` syhell
+root@notebook:/home/richard# last -n 5|awk '{print $1}'
+richard
+reboot
+richard
+reboot
+richard
+
+wtmp
+root@notebook:/home/richard# last -n 5|awk '{print $0}'
+richard  tty7         :0               Tue Nov 29 07:01    gone - no logout
+reboot   system boot  4.8.0-27-generic Tue Nov 29 07:00   still running
+richard  tty7         :0               Thu Nov 24 23:11 - crash (4+07:49)
+reboot   system boot  4.8.0-27-generic Thu Nov 24 23:10   still running
+richard  tty7         :0               Thu Nov 24 20:21 - crash  (02:49)
+```
+- {print $0} 0 表示所有列
+- {print $1} 1 表示第一列
+
+``` shell
+richard@notebook:~/linux_study$ tail -n 5 /etc/passwd |awk -F':' '{print $1}'
+richard
+sshd
+mysql
+ftp
+postfix
+-F 参数，当分隔符不是默认的空格，就应该用-F 参数指定分隔符
+```
+
