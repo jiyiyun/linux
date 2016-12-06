@@ -1,0 +1,18 @@
+
+[root@rhel1 cloudsoar]# rpm -ivh yum-plugin-fastestmirror-1.1.31-34.el7.noarch.rpm 
+警告：yum-plugin-fastestmirror-1.1.31-34.el7.noarch.rpm: 头V3 RSA/SHA256 Signature, 密钥 ID f4a80eb5: NOKEY
+错误：依赖检测失败：
+	yum >= 3.0 被 yum-plugin-fastestmirror-1.1.31-34.el7.noarch 需要
+[root@rhel1 cloudsoar]# rpm -ivh yum-3.4.3-132.el7.centos.0.1.noarch.rpm 
+警告：yum-3.4.3-132.el7.centos.0.1.noarch.rpm: 头V3 RSA/SHA256 Signature, 密钥 ID f4a80eb5: NOKEY
+错误：依赖检测失败：
+	yum-plugin-fastestmirror 被 yum-3.4.3-132.el7.centos.0.1.noarch 需要
+
+[root@rhel1 cloudsoar]# rpm -ivh yum-plugin-fastestmirror-1.1.31-34.el7.noarch.rpm yum-3.4.3-132.el7.centos.0.1.noarch.rpm
+警告：yum-plugin-fastestmirror-1.1.31-34.el7.noarch.rpm: 头V3 RSA/SHA256 Signature, 密钥 ID f4a80eb5: NOKEY
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:yum-3.4.3-132.el7.centos.0.1     ################################# [ 50%]
+   2:yum-plugin-fastestmirror-1.1.31-3################################# [100%]
+
+解决循环依赖的方法：一次性将两个包一个命令一起安装
