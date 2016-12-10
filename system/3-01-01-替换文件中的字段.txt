@@ -66,3 +66,6 @@ $ sed -n 's/^test/mytest/p' example-----(-n)选项和p标志一起使用表示�
 
 $ sed 's/^192.168.0.1/&localhost/' example-----&符号表示替换换字符串中被找到的部份。所有以192.168.0.1开头的行都会被替换成它自已加 localhost，变成192.168.0.1localhost。
 $ sed -n 's/\(love\)able/\1rs/p'
+
+参考
+Linux中替换文本中的字符串 http://blog.sina.com.cn/s/blog_6419abc70100wi24.html
