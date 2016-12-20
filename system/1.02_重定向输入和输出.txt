@@ -1,0 +1,25 @@
+输出重定向
+Command > outputfile
+[root@centos73 tmp]# cat test4
+[root@centos73 tmp]# date > test4
+[root@centos73 tmp]# cat test4
+Tue Dec 20 11:07:21 CST 2016
+重定向操作符创建了文件test4(使用了默认的umask设置)，并且将date命令输出重定向到文件test4，如果该文件已经存在，则重定向会用新的文件数据重写已经存在的文件。
+
+
+输入重定向
+输入重定向不是将命令的输出重定向到一个文件中，而是将一个文件的内容重定向到一条命令中。
+command < inputfile
+
+命令总是在命令行开始的位置，重定向符号指向数据流动的方向，小于号表明数据从输入文件流向命令。
+
+内置输入重定向 inline input redirection
+command << marker
+这种方法允许在命令行中而非文件中为输入重定向指定数据。
+内置输入重定向符号是两个小于号 << 出了这个还必须指定一个文本标记来说明输入数据的开始和结尾。文本标记可以使用任何字符串值，但是数据的开始和结尾处必须相同
+[root@centos73 tmp]# wc << EOF
+> test string 1
+> test string 2
+> test string 3
+> EOF
+ 3  9 42
