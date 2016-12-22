@@ -2,6 +2,12 @@ iperf网络性能测试工具
 ===
 iperf命令是一个网络性能测试工具。iperf可以测试TCP和UDP带宽质量。iperf可以测量最大TCP带宽，具有多种参数和UDP特性。iperf可以报告带宽，延迟抖动和数据包丢失。利用iperf这一特性，可以用来测试一些网络设备如路由器，防火墙，交换机等的性能。
 
+iperf在linux主机上的安装
+---
+```shell
+yum install iperf -y    #centos
+apt install iperf -y    #ubuntu
+```
 iperf客户端
 ---
 ``` shell
