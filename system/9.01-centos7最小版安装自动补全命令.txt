@@ -1,0 +1,3 @@
+centos7 最小版安装自动补全命令
+---
+[root@centos ~]# yum install bash-completion
