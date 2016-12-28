@@ -23,3 +23,6 @@ default 192.168.0.1
 nameserver 223.5.5.5
 nameserver 114.114.114.114
 ```
+参考资料
+---
+[OpenSuSE网络配置] http://www.2cto.com/os/201410/341549.html
