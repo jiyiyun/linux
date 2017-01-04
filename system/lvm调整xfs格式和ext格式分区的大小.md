@@ -93,5 +93,5 @@ ext 格式系统lvm调整大小 Ubuntu默认
 ```
 参考资料
 ---
-[linux调整lvm分区大小（/home分区过大，/root分区过小] http://tianshili.blog.51cto.com/5050423/1638563
-[如何调整LVM 逻辑分区的大小？] http://www.linuxidc.com/Linux/2016-06/132709.htm
+- [linux调整lvm分区大小（/home分区过大，/root分区过小] http://tianshili.blog.51cto.com/5050423/1638563
+- [如何调整LVM 逻辑分区的大小？] http://www.linuxidc.com/Linux/2016-06/132709.htm
