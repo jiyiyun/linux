@@ -1,0 +1,61 @@
+    1  cd /etc/yum.repos.d/
+    2  vi ifcfg-ens192 
+    3  df -h
+    4  mount -o loop /dev/cdrom /mnt
+    5  cd /etc/yum.repos.d/
+    9  mv redhat.repo redhat.repo.bak
+   10  vi rhelcdrom.repo
+   16  cd /etc/yum.repos.d/
+   17  ls
+   18  vi szyum.repo
+   19  yum repotest
+   20  yum install ftp -y
+   23  yum install vnc -y
+   24  iptraf-ng
+   25  yum install iptraf -y
+   26  iptraf-ng
+
+   41  cd vmware-tools-distrib/
+   42  ls
+   43  ./vmware-install.pl 
+   44  umount /mnt
+
+   50  pvcreate /dev/sdb
+   51  vgcreate vg01 /dev/sdb
+   52  lvcreate -L 199.9g -n lv_data vg01
+   53  mkfs.ext4 /dev/mapper/vg01-lv_data 
+   54  mkdir /data
+   55  mount /dev/mapper/vg01-lv_data /data
+   56  vi /etc/fstab
+   57  reboot
+   58  df -Th
+
+修改ext4 to xfs
+---
+1 卸载该挂载
+   59  umount /data/
+2 编辑开机启动文件fstab ,将lv的格式ext4改成xfs
+   60  vi /etc/fstab  
+3 删除该lv
+   64  lvremove /dev/vg01/lv_data 
+4 删除该vg
+   65  vgremove vg01 
+5 格式化该硬盘
+   67  mkfs.xfs -f /dev/sdb
+6 创建vg 并将/dev/sdb添加进来，如果有多个硬盘，逐个添加进vg01
+   69  vgcreate vg01 /dev/sdb
+7 创建lv 并设置lv大小
+   70  lvcreate --name lv_data -L +199G vg01
+8 把不满1G的都添加进lv
+   71  vgdisplay  
+   73  lvextend -L +1020M /dev/vg01/lv_data 
+   74  vgdisplay 
+9 格式化lv
+   76  mkfs.xfs /dev/vg01/lv_data 
+10 挂载到/data 目录
+   77  mount /dev/vg01/lv_data /data
+11 检查开机启动lv路径和名称是否正确
+   78  vi /etc/fstab 
+12 检查格式是否修改好了
+   79  df -Th
+   80  reboot
