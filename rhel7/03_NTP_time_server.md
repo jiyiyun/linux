@@ -81,8 +81,8 @@ keys /etc/ntp/keys        #给客户端设置认证信息，不修改
 4. 开机启动
 ---
 ``` shell
-# systemctl start ntp
-# systemctl enable ntp
+# systemctl start ntpd
+# systemctl enable ntpd
 ```
 5.打开iptables和防火墙123端口
 ---
