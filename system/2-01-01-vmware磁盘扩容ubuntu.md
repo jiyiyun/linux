@@ -1,14 +1,25 @@
 磁盘扩容
 ===
+
 ``` shell
 root@ubuntu:/home/richard# fdisk -l|grep  /dev/sd                      #查看LVM
 Disk /dev/sda: 80 GiB, 85899345920 bytes, 167772160 sectors
 /dev/sda1  *       2048   999423   997376  487M 83 Linux
 /dev/sda2       1001470 62912511 61911042 29.5G  5 Extended
 /dev/sda5       1001472 62912511 61911040 29.5G 8e Linux LVM
+```
 
-root@ubuntu:/home/richard# fdisk /dev/sda                             #从/dev/sda 硬盘上分新的区，如果的新增硬盘可以略过这步
+```txt
+root@ubuntu:/home/richard# fdisk /dev/sda 
 
+备注
+在原来硬盘上增加容量用    fdisk /dev/sda
+
+如果是新增硬盘用          fdisk /dev/sdb
+第三块硬盘就是sdc 第四块就是sdd，以此类推
+```
+
+```txt
 Welcome to fdisk (util-linux 2.27.1).
 Changes will remain in memory only, until you decide to write them.
 Be careful before using the write command.
@@ -33,9 +44,14 @@ Calling ioctl() to re-read partition table.
 Re-reading the partition table failed.: Device or resource busy
 
 The kernel still uses the old table. The new table will be used at the next reboot or after you run partprobe(8) or kpartx(8).
+```
 
+```txt
+这一步有时候不做也可以
 root@ubuntu:/home/richard# partprobe                                       #重新计算容量
+```
 
+```txt
 root@ubuntu:/home/richard# fdisk -l
 Disk /dev/sda: 80 GiB, 85899345920 bytes, 167772160 sectors
 Units: sectors of 1 * 512 = 512 bytes
@@ -62,11 +78,23 @@ tmpfs                        2.0G     0  2.0G   0% /sys/fs/cgroup
 /dev/sda1                    472M   55M  393M  13% /boot
 tmpfs                        100K     0  100K   0% /run/lxcfs/controllers
 tmpfs                        401M     0  401M   0% /run/user/1000
+```
 
-root@ubuntu:/home/richard# pvcreate /dev/sda4                                 #创建物理卷
+```txt
+已经有lvm这一步可以不用
+
+root@ubuntu:/home/richard# pvcreate /dev/sda4                                 #创建物理卷,已经有lvm的使用vgdisplay查看vg名称
   Physical volume "/dev/sda4" successfully created
+```
 
-root@ubuntu:/home/richard# vgextend ubuntu-vg /dev/sda4                       #先把新分区拓展到group
+使用vgdisplay查看逻辑卷组名称
+
+使用lvdisplay 查看逻辑卷名称
+
+```txt
+将新增的分区加入到逻辑卷组 vg
+
+root@ubuntu:/home/richard# vgextend ubuntu-vg /dev/sda4                       #先把新分区拓展到vg 再添加到lv，lv名称用lvdisplay查看
   Volume group "ubuntu-vg" successfully extended
 root@ubuntu:/home/richard# df -h
 Filesystem                   Size  Used Avail Use% Mounted on
@@ -79,7 +107,10 @@ tmpfs                        2.0G     0  2.0G   0% /sys/fs/cgroup
 /dev/sda1                    472M   55M  393M  13% /boot
 tmpfs                        100K     0  100K   0% /run/lxcfs/controllers
 tmpfs                        401M     0  401M   0% /run/user/1000
-root@ubuntu:/home/richard# lvextend -L +50G /dev/mapper/ubuntu--vg-root         #拓展容量
+
+给逻辑卷lv增加容量:可以给不同的lv增加不同的容量，也可以先给不同的VG分配不同的容量再给不同的lv分配不同的容量
+
+root@ubuntu:/home/richard# lvextend -L +50G /dev/mapper/ubuntu--vg-root         #拓展lv容量,
   Size of logical volume ubuntu-vg/root changed from 28.52 GiB (7301 extents) to 78.52 GiB (20101 extents).
   Logical volume root successfully resized.
 root@ubuntu:/home/richard# df -h
@@ -93,12 +124,17 @@ tmpfs                        2.0G     0  2.0G   0% /sys/fs/cgroup
 /dev/sda1                    472M   55M  393M  13% /boot
 tmpfs                        100K     0  100K   0% /run/lxcfs/controllers
 tmpfs                        401M     0  401M   0% /run/user/1000
+
+给lv分配好容量再重新计算lv大小
 root@ubuntu:/home/richard# resize2fs /dev/mapper/ubuntu--vg-root               #格式化虚拟分区
 resize2fs 1.42.13 (17-May-2015)
 Filesystem at /dev/mapper/ubuntu--vg-root is mounted on /; on-line resizing required
 old_desc_blocks = 2, new_desc_blocks = 5
 The filesystem on /dev/mapper/ubuntu--vg-root is now 20583424 (4k) blocks long.
+```
+调整好了，查看调整后的容量
 
+```txt
 root@ubuntu:/home/richard# df -h
 Filesystem                   Size  Used Avail Use% Mounted on
 udev                         2.0G     0  2.0G   0% /dev
