@@ -65,6 +65,46 @@ node3.k8s.com
 }
 ```
 
+附录：
+---
+
+将公钥id.rsa.pub拷贝到所有主机，推荐使用ssh-copy-id公钥拷贝工具，
+
+命令格式：
+
+```shell
+/usr/bin/ssh-copy-id [-i [identify_file]] [usr@]machine
+```
+例如：
+
+```txt
+#ssh-copy-id -i /root/.ssh/id.rsa.pub  root@192.168.1.21
+
+#ssh-copy-id -i /root/.ssh/id.rsa.pub  root@192.168.1.22
+```
+
+嵌套组只能使用在playbook中，不能使用在/usr/bin/amsible中
+---
+
+```txt
+[atlanta]
+host1
+host2
+
+[raleigh]
+host3
+host4
+
+[southeast:children]
+altlanta
+releigh
+
+[usa:children]
+southeast
+southwest
+northease
+northwest
+```
 参考资料
 ---
 - [Ansible 英文官网]https://www.ansible.com/resources
