@@ -1,0 +1,124 @@
+solaris使用
+====
+
+1、默认用户路径不在/home/username 目录下，在/export/home/username 下
+2、查看IP地址 ifconfig -a
+
+richard@solaris:~$ cat /etc/passwd 
+root:x:0:0:Super-User:/root:/usr/bin/bash
+daemon:x:1:1::/:/bin/sh
+bin:x:2:2::/:/bin/sh
+sys:x:3:3::/:/bin/sh
+adm:x:4:4:Admin:/var/adm:/bin/sh
+nobody4:x:65534:65534:SunOS 4.x NFS Anonymous Access User:/:/bin/sh
+richard:x:100:10:richard:/export/home/richard:/usr/bin/bash
+第一字段： 用户名
+第二字段： 口令
+第三字段： UID
+第四字段： GID
+第五字段： 用户全名(可选)
+第六字段： 用户家目录
+第七字段： 用户SHELL的类型
+
+用户   UID   作用说明   用户主目录   shell
+root   0     超级用户   /root        /usr/bin/bash
+daemon 1     正在运行的二进制文件向关联的管理守护进程  / 
+bin    2     系统任务相关联的守护进程  /usr/bin
+sys    3     与系统日志记录相关联的管理守护进程  /
+adm    4     与临时目录中的系统日志记录或文件更新相关联的管理守护进程
+nobody4 65534  nobody用户
+
+用户组
+richard@solaris:~$ cat /etc/group 
+root::0:                       #超级用户组
+other::1:root                  #可选组
+bin::2:daemon,root             #二进制文件相关联的管理组
+sys::3:bin,adm,root            #系统日志记录或临时目录相关联管理组
+adm::4:daemon,root             #系统日志记录相关联管理组
+nogroup::65534:                #不是已知组成员的用户指定的组
+
+角色role 角色访问控制RBAC
+默认情况下solaris 3种不同的系统管理角色
+主管理员PA   Primary Administrator       为其它用户分配权限，系统安全管理
+系统管理员 SA  System Administrator      负责与系统安全无关的日常管理工作
+操作员Operator                           执行备份和设备维护操作
+
+        用户角色分配   角色等级    角色权限分配
+用户 <---------------->角色 <------------------>权限  
+            会话                 限制
+
+4个RBAC数据库用于用户管理
+1、/etc/user_attr    #将用户，角色，授权，权限配置文件相关联
+richard@solaris:~$ cat /etc/user_attr
+root::::type=role
+richard::::lock_after_retries=no;roles=root;clearance=ADMIN_HIGH;min_label=ADMIN_LOW;auth_profiles=System Administrator
+richard@solaris:~$ 
+数据库user_attr是唯一需要的数据库，其它数据库的使用取决于实现那种安全功能，补充了passwd 和shadow数据库，拓展了用户属性，例如授权和执行profile
+
+2、richard@solaris:~$ cat /etc/security/auth_attr   #授权数据库
+3、richard@solaris:~$ cat /etc/security/prof_attr   #授权配置文件数据库
+4、richard@solaris:~$ cat /etc/security/exec_attr   #授权执行属性数据库
+
+RAPC特点
+1、访问权限和角色关联，不同角色拥有不同权限
+2、角色继承，
+3、最小权限原则，用户拥有的权限不能超过他执行工作时所需权限
+4、职责分离，静态动态
+5、角色容量  一定时间段内一些角色只能有一定数量的用户占用
+
+roleadd  #添加角色
+rolemod  #修改角色
+useradd  #添加用户    -A authorization指定角色授权 -P profile  -R role
+usermod  #修改用户    -g group -u UID -s shell -m homedir c comment注释
+
+实例
+root@solaris:~# roleadd -u 5000 -g 10 -m -d /export/home/sdown sdown
+80 blocks
+
+root@solaris:~# passwd sdown
+New Password: 
+Re-enter new Password: 
+passwd: password successfully changed for sdown
+
+root@solaris:~# vi /etc/security/prof_attr
+Shut:::Able to shutdown the system
+
+root@solaris:~# vi /etc/security/exec_attr
+Shut:suser:cmd:::/usr/sbin/shutdown:uid=0
+
+把角色和权限进行关联
+root@solaris:~# rolemod -P Shut sdown
+把角色赋予一个用户richard
+root@solaris:~# usermod -R sdown richard
+UX: usermod: richard is currently logged in, some changes may not take effect until next login.
+
+测试
+richard@solaris:~$ roles
+sdown
+
+sdown@solaris:~$ profiles -l
+Shut
+Basic Solaris User
+        auths=solaris.mail.mailq,solaris.network.autoconf.read,solaris.admin.wusb.read
+        profiles=All
+          /usr/lib/rad/module/mod_dlmgr.so.1 
+                                     privs={zone}:/devices/pseudo/sysevent*
+          /usr/bin/cdrecord.bin      privs=file_dac_read,sys_devices,proc_lock_memory,proc_priocntl,net_privaddr
+          /usr/bin/readcd.bin        privs=file_dac_read,sys_devices,net_privaddr
+          /usr/bin/cdda2wav.bin      privs=file_dac_read,sys_devices,proc_priocntl,net_privaddr
+All
+          * 
+
+使用命令关闭系统
+sdown@solaris:~$ /usr/sbin/shutdown -i 6 -g 0
+
+Shutdown started.    Wed Dec 26 00:08:52 CST 2018
+
+Do you want to continue? (y or n):   y
+Changing to init state 6 - please wait
+Broadcast Message from root (pts/1) on solaris Wed Dec 26 00:08:56...
+THE SYSTEM solaris IS BEING SHUT DOWN NOW ! ! !
+Log off now or risk your files being damaged
+
+
+

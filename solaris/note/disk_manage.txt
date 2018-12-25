@@ -1,0 +1,9 @@
+richard@solaris:~$ df -h
+Filesystem             Size   Used  Available Capacity  Mounted on
+rpool/ROOT/solaris      39G   2.6G        34G     8%    /
+rpool/ROOT/solaris/var
+                        39G   315M        34G     1%    /var
+/devices                 0K     0K         0K     0%    /devices
+/dev                     0K     0K         0K     0%    /dev
+ctfs                     0K     0K         0K     0%    /system/contract
+proc                     0K     0K         0K     0%    /proc

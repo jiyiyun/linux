@@ -1,0 +1,151 @@
+zfs文件系统只有两个命令
+zpool   #ZFS池管理
+zfs     #针对ZFS文件系统管理
+
+ZFS建立在池存储概念的基础上，与典型的文件系统映射到物理存储器不同，池中所有ZFS文件系统都共享该池中的可用存储器
+
+ZFS中所有元数据都是动态分配的，df -g,zfs是事务型文件系统
+zfs术语
+1) checksum       #使用加密算法对文件系统数据块进行校验
+2) dataset        #一些如克隆，文件系统，快照snapshot，卷等zfs实体的通用名称
+3) Filesystem
+4) mirror
+5) pool           #具有分层属性和物理特性的逻辑设备组，数据集被分配到池中
+6) RAID-Z
+7) clone
+8) virtual device
+9) Volume
+10) 压缩
+11) 回滚
+12) 存取时间       #atime
+13) 挂载点
+
+zfs硬件和软件建议
+1、最小磁盘为128M,用于存储池最小磁盘空间为64M
+查看有没有zfs包，只要有这3个就可以
+root@solaris:~# pkginfo |grep SUNWzfs
+system      SUNWzfskr      ZFS kernel root components
+system      SUNWzfsr       ZFS root components
+system      SUNWzfsu       ZFS libraries and commands
+root@solaris:~# 
+
+zpool命令列表
+root@solaris:~# zpool help
+The following commands are supported:
+add      attach   clear    create   destroy  detach   export   get      
+help     history  import   iostat   label    list     monitor  offline  
+online   reguid   remove   replace  scrub    set      split    status   
+upgrade  
+For more info, run: zpool help <command>
+
+create       #使用指定的实际的设备建立存储池
+destory      #销毁一个存储池，但是不删除设备中的数据
+add          #在存储池中添加新设备
+remove       #在存储池中删除虚拟设备，但是不删除设备中的数据
+list
+iostat
+status
+online
+clear        #消除存储池设备错误计数
+attach       #固定一个设备到存储池中
+detach       #从存储池中分离一个设备
+replace
+scrub        #校验存储池
+import
+export
+upgrade      #升级存储池
+history      #显示存储池操作命令
+get          #找回和列出存储池设备
+set          #设置一个或者多个设备到存储池
+
+
+zfs命令
+root@solaris:~# zfs help
+The following commands are supported:
+allow       clone       create      destroy     diff        get         
+groupspace  help        hold        holds       inherit     key         
+list        mount       promote     receive     release     rename      
+rollback    send        set         share       snapshot    unallow     
+unmount     unshare     upgrade     userspace   
+For more info, run: zfs help <command>
+
+create       #创建zfs文件系统
+destory      #销毁一个zfs文件系统
+snapshot     #建立一个文件系统快照
+rollback     #将一个文件系统从快照中恢复
+clone        
+promote      #从一个clone创建一个文件系统
+upgrade      #升级文件系统
+list         #查看和询问文件系统信息
+allow        #将执行zfs管理任务的细粒度委托给非特权用户
+unallow      
+share        #共享zfs系统
+unshare
+rename       #重命名zfs快照
+mount        #挂载zfs文件系统
+unmount
+set          #设置或者修改数据集属性
+get
+
+root@solaris:~# zpool list
+NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+rpool  49.5G  5.03G  44.5G  10%  1.00x  ONLINE  -
+
+root@solaris:~# zpool iostat
+          capacity     operations    bandwidth
+pool   alloc   free   read  write   read  write
+-----  -----  -----  -----  -----  -----  -----
+rpool  5.03G  44.5G      7     12   102K   324K
+
+root@solaris:~# zpool history    
+History for 'rpool':
+2018-12-25.17:29:36 zpool create -f -B rpool c2t0d0
+2018-12-25.17:29:40 zfs create -p -V 1024.0m rpool/dump
+2018-12-25.17:29:40 zfs create -p -V 1024.0m rpool/swap
+2018-12-25.17:29:45 zfs set primarycache=metadata rpool/swap
+2018-12-25.17:50:29 zfs set com.oracle.libbe:last-boot-time=20181225T175029Z rpool/ROOT/solaris
+2018-12-25.17:50:29 zfs create -o setuid=on -o exec=on -o xattr=on -o mountpoint=/var/tmp rpool/VARSHARE/tmp
+2018-12-25.17:50:30 zfs set canmount=noauto rpool/VARSHARE/tmp
+2018-12-25.17:50:30 zfs create rpool/VARSHARE/kvol
+2018-12-25.17:51:01 zfs set primarycache=metadata rpool/swap
+2018-12-25.17:51:03 zfs create rpool/export/home/richard
+2018-12-25.17:51:07 zfs unmount rpool/export
+2018-12-25.17:51:34 zfs create -p rpool/VARSHARE/pkg/repositories
+2018-12-25.17:51:36 zfs create -o compression=gzip -o mountpoint=/var/share/sstore/repo -o canmount=noauto rpool/VARSHARE/sstore
+2018-12-25.17:51:36 zfs set canmount=noauto rpool/VARSHARE/sstore
+2018-12-25.17:51:36 zfs set canmount=noauto rpool/VARSHARE/pkg
+2018-12-25.17:51:37 zfs set canmount=noauto rpool/VARSHARE/pkg/repositories
+2018-12-25.17:51:42 zfs allow pkg5srv create,mount,canmount,snapshot rpool/VARSHARE/pkg/repositories
+
+
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+rpool                             5.03G  43.7G  4.32M  /rpool
+rpool/ROOT                        3.00G  43.7G    31K  none
+rpool/ROOT/solaris                3.00G  43.7G  2.63G  /
+rpool/ROOT/solaris/var             315M  43.7G   315M  /var
+rpool/VARSHARE                    31.3M  43.7G  2.72M  /var/share
+rpool/VARSHARE/kvol               27.7M  43.7G    31K  /var/share/kvol
+rpool/VARSHARE/kvol/dump_summary  1.22M  43.7G  1.02M  -
+rpool/VARSHARE/kvol/ereports      10.2M  43.7G  10.0M  -
+rpool/VARSHARE/kvol/kernel_log    16.2M  43.7G  16.0M  -
+rpool/VARSHARE/pkg                  63K  43.7G    32K  /var/share/pkg
+rpool/VARSHARE/pkg/repositories     31K  43.7G    31K  /var/share/pkg/repositories
+rpool/VARSHARE/sstore              750K  43.7G   750K  /var/share/sstore/repo
+rpool/VARSHARE/tmp                  31K  43.7G    31K  /var/tmp
+rpool/VARSHARE/zones                31K  43.7G    31K  /system/zones
+rpool/dump                        1.00G  43.7G  1.00G  -
+rpool/export                       243K  43.7G    32K  /export
+rpool/export/home                  211K  43.7G    37K  /export/home
+rpool/export/home/richard           34K  43.7G    34K  /export/home/richard
+rpool/swap                        1.00G  43.7G  1.00G  -
+root@solaris:~# 
+
+root@solaris:~# fsstat zfs
+ new  name   name  attr  attr lookup rddir  read read  write write
+ file remov  chng   get   set    ops   ops   ops bytes   ops bytes
+7.30K 4.27K 1.18K 1.15M 1.45K  3.40M 51.3K  481K  982M 56.7K  862M zfs
+
+
+二、使用web管理ZFS文件系统
+java web console
