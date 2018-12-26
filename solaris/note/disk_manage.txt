@@ -1,3 +1,7 @@
+
+df -h 查看磁盘使用率，挂载信息
+---
+
 richard@solaris:~$ df -h
 Filesystem             Size   Used  Available Capacity  Mounted on
 rpool/ROOT/solaris      39G   2.6G        34G     8%    /
@@ -7,3 +11,532 @@ rpool/ROOT/solaris/var
 /dev                     0K     0K         0K     0%    /dev
 ctfs                     0K     0K         0K     0%    /system/contract
 proc                     0K     0K         0K     0%    /proc
+
+fsstat -F 可以查看磁盘格式，类似于linux上面的df -Th，但是不同的是还可以查看磁盘活动状况
+---
+
+richard@solaris:~$ fsstat -F
+ new  name   name  attr  attr lookup rddir  read read  write write
+ file remov  chng   get   set    ops   ops   ops bytes   ops bytes
+    0     0     0    18     0      7     4     0     0     0     0 ufs
+    0     0     0     0     0      0     0     0     0     0     0 namefs
+    0     0     0 23.6K     0  36.2K 22.6K 1.07K  536K     0     0 proc
+    0     0     0     0     0      0     0     0     0     0     0 samfs
+    0     0     0     0     0      0     0     0     0     0     0 nfs
+10.4K 6.00K 2.28K  511K   973  2.20M 26.8K  152K  549M 29.1K  364M zfs
+    0     0     0     0     0      0     0     0     0     0     0 hsfs
+    0     0     0   612     0      0     0    85 6.06K     0     0 lofs
+5.72K   358   161  139K 20.7K  71.8K   198 37.7K 56.0M  167K 2.45G tmpfs
+    0     0     0     0     0      0     0     0     0     0     0 pcfs
+    0     0     0   342     0      0     0    83 24.5K     0     0 mntfs
+    0     0     0     0     0      0     0     0     0     0     0 devfs
+    0     0     0     0     0      0     0     0     0     0     0 dev
+    0     0     0     0     0      0     0     0     0     0     0 sharefs
+    0     0     0     0     0      0     0     0     0     0     0 dcfs
+    0     0     0     0     0      0     0     0     0     0     0 smbfs
+    0     0     0     0     0      0     0     0     0     0     0 uvfs
+    0     0     0     0     0      0     0     0     0     0     0 sockfs
+    0     0     0     0     0      0     0     0     0     0     0 nfs3
+    0     0     0     0     0      0     0     0     0     0     0 nfs4
+    0     0     0     8     0      0     4     0     0     0     0 autofs
+
+richard@solaris:~$ fsstat /export/home/
+ new  name   name  attr  attr lookup rddir  read read  write write
+ file remov  chng   get   set    ops   ops   ops bytes   ops bytes
+    0     0     0    11     0     83     0     0     0     0     0 /export/home
+	
+format命令
+---
+
+root@solaris:~# format 
+Searching for disks...done
+
+AVAILABLE DISK SELECTIONS:
+       0. c2t0d0 <VMware,-VMware Virtual S-1.0-50.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@0,0
+       1. c2t1d0 <VMware,-VMware Virtual S-1.0-16.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@1,0
+       2. c2t2d0 <VMware,-VMware Virtual S-1.0-16.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@2,0
+Specify disk (enter its number): 0
+selecting c2t0d0 <VMware,-VMware Virtual S-1.0-50.00GB>
+[disk formatted]
+/dev/dsk/c2t0d0s1 is part of active ZFS pool rpool. Please see zpool(8).
+
+FORMAT MENU:
+        disk       - select a disk
+        type       - select (define) a disk type
+        partition  - select (define) a partition table
+        current    - describe the current disk
+        format     - format and analyze the disk
+        fdisk      - run the fdisk program
+        repair     - repair a defective sector
+        label      - write label to the disk
+        analyze    - surface analysis
+        defect     - defect list management
+        backup     - search for backup labels
+        verify     - read and display labels
+        inquiry    - show disk ID
+        volname    - set 8-character volume name
+        !<cmd>     - execute <cmd>, then return
+        quit
+format> current
+Current Disk = c2t0d0
+<VMware,-VMware Virtual S-1.0-50.00GB>
+/pci@0,0/pci15ad,1976@10/sd@0,0
+
+format> verify  
+
+Volume name = <        >
+ascii name  = <VMware,-VMware Virtual S-1.0-50.00GB>
+bytes/sector    =  512
+sectors = 104857599
+accessible sectors = 104857566
+Part      Tag    Flag     First Sector         Size         Last Sector
+  0  BIOS_boot    wm               256      260.00MB          532735    
+  1        usr    wm            532736       49.74GB          104841182    
+  2 unassigned    wm                 0           0               0    
+  3 unassigned    wm                 0           0               0    
+  4 unassigned    wm                 0           0               0    
+  5 unassigned    wm                 0           0               0    
+  6 unassigned    wm                 0           0               0    
+  8   reserved    wm         104841183        8.00MB          104857566    
+
+format> inquiry
+Vendor: VMware, 
+Product: VMware Virtual S
+Revision: 1.0 
+Serial: 
+format> quit
+root@solaris:~# 
+
+
+添加硬盘
+===
+
+第一步：formart
+---
+
+root@solaris:/# format 
+Searching for disks...done
+
+
+AVAILABLE DISK SELECTIONS:
+       0. c2t0d0 <VMware,-VMware Virtual S-1.0-50.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@0,0
+       1. c2t1d0 <VMware,-VMware Virtual S-1.0-16.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@1,0
+       2. c2t2d0 <VMware,-VMware Virtual S-1.0-16.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@2,0
+Specify disk (enter its number): 1   #选择要新添加的硬盘
+selecting c2t1d0 <VMware,-VMware Virtual S-1.0 cyl 2085 alt 2 hd 255 sec 63>
+[disk formatted]
+
+
+FORMAT MENU:
+        disk       - select a disk
+        type       - select (define) a disk type
+        partition  - select (define) a partition table
+        current    - describe the current disk
+        format     - format and analyze the disk
+        fdisk      - run the fdisk program
+        repair     - repair a defective sector
+        label      - write label to the disk
+        analyze    - surface analysis
+        defect     - defect list management
+        backup     - search for backup labels
+        verify     - read and display labels
+        inquiry    - show disk ID
+        volname    - set 8-character volume name
+        !<cmd>     - execute <cmd>, then return
+        quit
+第二步:fdisk     #建立分区表
+format> fdisk
+		
+             Total disk size is 2088 cylinders
+             Cylinder size is 16065 (512 byte) blocks
+
+                                               Cylinders
+      Partition   Status    Type          Start   End   Length    %
+      =========   ======    ============  =====   ===   ======   ===
+          1       Active    Solaris2          1  2087    2087    100
+
+
+
+
+SELECT ONE OF THE FOLLOWING:
+   1. Create a partition
+   2. Specify the active partition
+   3. Delete a partition
+   4. Change between Solaris and Solaris2 Partition IDs
+   5. Edit/View extended partitions
+   6. Exit (update disk configuration and exit)
+   7. Cancel (exit without updating disk configuration)
+Enter Selection: 3
+步骤3走完，再选择6更新磁盘更改
+
+如果是没有格式化的磁盘,会有如下提示，选择y
+format> fdisk
+No fdisk table exists. The default partition for the disk is:
+
+  a 100% "SOLARIS System" partition
+
+Type "y" to accept the default partition,  otherwise type "n" to edit the
+ partition table.
+y
+
+format> label     
+Ready to label disk, continue? y
+
+format> p     #p 等于partition命令
+PARTITION MENU:
+        0      - change `0' partition
+        1      - change `1' partition
+        2      - change `2' partition
+        3      - change `3' partition
+        4      - change `4' partition
+        5      - change `5' partition
+        6      - change `6' partition
+        7      - change `7' partition
+        select - select a predefined table
+        modify - modify a predefined partition table
+        name   - name the current table
+        print  - display the current table
+        label  - write partition map and label to the disk
+        !<cmd> - execute <cmd>, then return
+        quit
+
+partition> modify   #modify 通过指定每个分区大小创建分区，而不必跟踪起始柱边界
+Select partitioning base:
+        0. Current partition table (default)
+        1. All Free Hog
+Choose base (enter number) [0]? 1   #将磁盘设置为浮动片
+
+Part      Tag    Flag     Cylinders        Size            Blocks
+  0       root    wm       0               0         (0/0/0)           0
+  1       swap    wu       0               0         (0/0/0)           0
+  2     backup    wu       0 - 2084       15.97GB    (2085/0/0) 33495525
+  3 unassigned    wm       0               0         (0/0/0)           0
+  4 unassigned    wm       0               0         (0/0/0)           0
+  5 unassigned    wm       0               0         (0/0/0)           0
+  6        usr    wm       0               0         (0/0/0)           0
+  7 unassigned    wm       0               0         (0/0/0)           0
+  8       boot    wu       0 -    0        7.84MB    (1/0/0)       16065
+  9 alternates    wm       0               0         (0/0/0)           0
+
+Do you wish to continue creating a new partition
+table based on above table[yes]? 
+Free Hog partition[6]? 
+Enter size of partition '0' [0, 0c, 0.00mb, 0.00gb,                         0.00tb]: 
+Enter size of partition '1' [0, 0c, 0.00mb, 0.00gb,                         0.00tb]: 
+Enter size of partition '3' [0, 0c, 0.00mb, 0.00gb,                         0.00tb]: 
+Enter size of partition '4' [0, 0c, 0.00mb, 0.00gb,                         0.00tb]: 
+Enter size of partition '5' [0, 0c, 0.00mb, 0.00gb,                         0.00tb]: 
+Enter size of partition '7' [0, 0c, 0.00mb, 0.00gb,                         0.00tb]: 
+
+Part      Tag    Flag     Cylinders        Size            Blocks
+  0       root    wm       0               0         (0/0/0)           0
+  1       swap    wu       0               0         (0/0/0)           0
+  2     backup    wu       0 - 2084       15.97GB    (2085/0/0) 33495525
+  3 unassigned    wm       0               0         (0/0/0)           0
+  4 unassigned    wm       0               0         (0/0/0)           0
+  5 unassigned    wm       0               0         (0/0/0)           0
+  6        usr    wm       1 - 2084       15.96GB    (2084/0/0) 33479460
+  7 unassigned    wm       0               0         (0/0/0)           0
+  8       boot    wu       0 -    0        7.84MB    (1/0/0)       16065
+  9 alternates    wm       0               0         (0/0/0)           0
+
+Okay to make this the current partition table[yes]? 
+Enter table name (remember quotes): backup
+
+Ready to label disk, continue? yes
+
+partition> quit      #退出partition
+
+
+FORMAT MENU:
+        disk       - select a disk
+        type       - select (define) a disk type
+        partition  - select (define) a partition table
+        current    - describe the current disk
+        format     - format and analyze the disk
+        fdisk      - run the fdisk program
+        repair     - repair a defective sector
+        label      - write label to the disk
+        analyze    - surface analysis
+        defect     - defect list management
+        backup     - search for backup labels
+        verify     - read and display labels
+        inquiry    - show disk ID
+        volname    - set 8-character volume name
+        !<cmd>     - execute <cmd>, then return
+        quit
+format> quit        #退出format
+
+namefs建立新文件系统,类似于linux xfs_extend  mkfs.ext4,linux 如果是增大原来的分区还需要resize
+---
+
+root@solaris:/# newfs /dev/rdsk/c2t1d0s2      #c2t1d0s2设备编号，formart命令开始执行的时候可以看到3个device
+  
+newfs: construct a new file system /dev/rdsk/c2t1d0s2: (y/n)? y
+Warning: 1564 sector(s) in last cylinder unallocated
+/dev/rdsk/c2t1d0s2:     33495524 sectors in 5452 cylinders of 48 tracks, 128 sectors
+        16355.2MB in 341 cyl groups (16 c/g, 48.00MB/g, 5824 i/g)
+super-block backups (for fsck -F ufs -o b=#) at:
+ 32, 98464, 196896, 295328, 393760, 492192, 590624, 689056, 787488, 885920,
+Initializing cylinder groups:
+......
+super-block backups for last 10 cylinder groups at:
+ 32540064, 32638496, 32736928, 32835360, 32933792, 33032224, 33130656,
+ 33229088, 33327520, 33425952
+
+挂载磁盘 mount
+---
+
+root@solaris:/# mount /dev/dsk/c2t1d0s2 /data
+
+查看挂载情况
+---
+root@solaris:/# df -h
+Filesystem             Size   Used  Available Capacity  Mounted on
+rpool/ROOT/solaris      49G   2.7G        44G     6%    /
+rpool/ROOT/solaris/var
+                        49G   315M        44G     1%    /var
+/devices                 0K     0K         0K     0%    /devices
+/dev                     0K     0K         0K     0%    /dev
+ctfs                     0K     0K         0K     0%    /system/contract
+proc                     0K     0K         0K     0%    /proc
+mnttab                   0K     0K         0K     0%    /etc/mnttab
+swap                   1.3G   6.5M       1.3G     1%    /system/volatile
+swap                   1.3G     4K       1.3G     1%    /tmp
+objfs                    0K     0K         0K     0%    /system/object
+sharefs                  0K     0K         0K     0%    /etc/dfs/sharetab
+fd                       0K     0K         0K     0%    /dev/fd
+/dev/dsk/c2t1d0s2       16G    16M        16G     1%    /data
+最后一行可以看到，挂载成功
+
+设置开机启动
+---
+
+root@solaris:/# vim /etc/vfstab 
+root@solaris:/data# cat /etc/vfstab 
+#device         device          mount           FS      fsck    mount   mount
+#to mount       to fsck         point           type    pass    at boot options
+#
+# START Informational entries for filesystems mounted by the kernel
+#/devices       -               /devices        devfs   -       no      -
+#/proc          -               /proc           proc    -       no      -
+#ctfs           -               /system/contract ctfs   -       no      -
+#objfs          -               /system/object  objfs   -       no      -
+#sharefs        -               /etc/dfs/sharetab       sharefs -       no      -
+#fd             -               /dev/fd         fd      -       no      -
+#swap           -               /tmp            tmpfs   -       yes     -
+# END Informational entries for filesystems mounted by the kernel
+
+/dev/zvol/dsk/rpool/swap        -               -               swap    -       no      -
+/dev/dsk/c2t1d0s2          /dev/rdsk/c2t1d0s2  /data    ufs     2       yes     -
+
+备注：fsck pass值为2意味着检查文件系统，但不是按顺序检查
+
+重启系统，登录后验证挂载
+---
+
+root@solaris:/data# reboot
+Connection closing...Socket close.
+richard@solaris:~$ cd /data
+richard@solaris:/data$ ls
+lost+found
+richard@solaris:/data$ df -h
+Filesystem             Size   Used  Available Capacity  Mounted on
+rpool/ROOT/solaris      49G   2.7G        44G     6%    /
+/dev/dsk/c2t1d0s2       16G    16M        16G     1%    /data
+
+OpemSolaris UFS文件系统管理
+===
+
+文件系统或目录      文件系统类型  说明
+/                    UFS          分层文件树的顶层，包含对存储系统至关重要的文件如kernel、drivers、引导程序
+/var                 UFS          随系统日渐增长的文件和目录，包括:logs,vi和ex备份文件及uucp文件
+/opt                 UFS或NFS     第三方软件的可选挂载点
+/tmp                 UFS          临时文件，每次引导系统或取消挂载/tmp将会删除这些文件
+/usr                 UFS          可以与其它用户共享的文件和目录，可以在所有类型系统上使用的文件(如手册)包含在/usr/share中
+/export/home或/home  UFS或NFS     用户起始目录挂载点
+
+UFS文件系统建立
+===
+
+使用newfs命令是创建UFS系统的标准办法，newfs命令是mkfs命令的前端，newfs实际用于创建系统，
+
+solaris物理磁盘说明
+---
+
+/dev/[r]dsk/cvtedx[sy,pz]
+dev        设备目录
+[r]dsk     原始磁盘设备目录
+cvted      逻辑控制器号
+x          物理总线目标号码
+sy         驱动器号
+pz         片编号(s0 ~ s7)或fdisk 分区号(p0 到p4)
+
+验证是否创建了UFS文件系统
+root@solaris:/data# fsck /dev/dsk/c2t1d0s2     
+/dev/dsk/c2t1d0s2 IS CURRENTLY MOUNTED READ/WRITE.
+CONTINUE? y
+
+** /dev/dsk/c2t1d0s2
+** Currently Mounted on /data
+** Phase 1 - Check Blocks and Sizes
+** Phase 2 - Check Pathnames
+** Phase 3a - Check Connectivity
+** Phase 3b - Verify Shadows/ACLs
+** Phase 4 - Check Reference Counts
+** Phase 5 - Check Cylinder Groups
+FILESYSTEM MAY STILL BE INCONSISTENT.
+2 files, 9 used, 16477659 free (11 frags, 2059706 blocks, 0.0% fragmentation)
+
+***** PLEASE RERUN FSCK ON UNMOUNTED FILE SYSTEM *****
+
+卸载UFS文件系统
+---
+
+umount挂载
+
+root@solaris:~# umount /data
+umount: /data busy
+root@solaris:~# vim /etc/vfstab 
+root@solaris:~# reboot
+
+root@solaris:~# fuser /dev/dsk/c2t1d0s2
+/dev/dsk/c2t1d0s2: 
+
+修复维护UFS系统
+---
+
+UFS系统依赖于一组内部表来跟踪已用的inode和可用块，当内部表和磁盘上的数据未正确同步时会导致不一致问题从而需要修复
+电源故障
+以外关闭系统电源
+没有正确的关闭系统
+内核中出现的软件错误
+系统引导时，会自动执行文件系统一致性检查(fsck),通常会修复遇到的问题，文件系统检查是fsck(file system check)实现的，fsck将已分配但没有说明来源的文件和目录放在lost+found目录下，如果目录不存在，fsck建立
+
+fsck
+root@solaris:~# fsck --help
+fsck: illegal option -- help
+Usage:
+fsck [-F FSType] [-V] [-m] [special ...]
+fsck [-F FSType] [-V] [-y|Y|n|N] [-o specific_options] [special ...]
+man fsck
+NAME
+       fsck - check and repair file systems
+
+SYNOPSIS
+       fsck [-F FSType] [-m] [-V] [-v] [special]...
+
+       fsck [-F FSType] [-n | N | y | Y] [-V] [-v]
+            [-o FSType-specific-options] [special]...
+
+OPTIONS
+       The following generic options are supported:
+
+       -F FSType
+           Specify the file system type on which to operate.
+       -m  #检查是否可以挂载文件系统
+           Check but do not repair. This option checks that the file system is
+           suitable for mounting, returning the appropriate  exit  status.  If
+           the file system is ready for mounting, fsck displays a message such
+           as:
+             ufs fsck: sanity check: /dev/rdsk/c0t3d0s1 okay
+       -n | -N    #拒绝所有修复
+           Assume a no response to all questions asked by fsck;  do  not  open
+           the file system for writing.
+       -V
+           Echo the expanded command line but do not execute the command. This
+           option may be used to verify and to validate the command line.
+       -v
+           Enables verbose output. Might not be supported by  all  filesystem-
+           specific fsck implementations.
+       -y | Y      #接受所有修复
+           Assume a yes response to all questions asked by fsck.
+       -o specific-options
+           These specific-options can be any combination of the following sep-
+           arated by commas (with no intervening spaces).
+           p
+               Check and fix the file system non-interactively ("preen"). Exit
+               immediately  if there is a problem requiring intervention. This
+               option is required to enable parallel file system checking.
+           w
+               Check writable file systems only.
+EXIT STATUS
+       0   file system is unmounted and OK
+       1   erroneous parameters are specified
+       32  file system is unmounted and needs checking (fsck  -m only)
+       33  file system is already mounted
+       34  cannot stat device
+       35  a filesystem that is mounted read/write was modified - reboot
+       36  uncorrectable errors detected - terminate normally
+       37  a signal was caught during processing
+       39  uncorrectable errors detected - terminate immediately
+       40  file system is mounted read-only and is OK
+
+FILES
+       /etc/default/fs
+
+           default local file system type. Default values can be set  for  the
+           following flags in /etc/default/fs. For example: LOCAL=ufs.
+
+           LOCAL
+
+               The default partition for a command if no FSType is specified.
+
+       /etc/vfstab
+
+           list of default parameters for each file system
+
+修复文件系统步骤
+1 umount
+2 fsck进行修复
+
+整理UFS文件系统
+1 umount
+2 fsck -o p /dev/rdsk/device-name
+
+例如整理/export/home
+fsck -o p /export/home
+
+UFS文件系统设置配额
+---
+
+配额管理员可以控制UFS文件系统的大小，配额会限制磁盘空间量和inode数量，这些数量和各个用户获取的文件数量大致对应，配额在用户起始目录驻留的文件系统中特别有用，
+配额可更改，可删除
+
+例如 在磁盘/dev/dsk/c2t1d0s2 的mount挂载点/data 建立磁盘配额,在mount option字段中添加rq
+vim /etc/vfstab
+/dev/dsk/c2t1d0s2 /dev/rdsk/c2t1d0s2 /data   ufs 3 yes rq
+
+在/data 目录创建quotas文件
+touch quotas
+chmod 600 quotas    #供其它用户访问
+使用edquota命令为单用户账户创建磁盘配额和inode配额
+edquota richard
+richard是用户名
+
+系统生成一行
+fs /data blocks (soft = 50 ,hard = 60) inodes (soft = 90 ,hard = 100)
+
+检查配额一致性
+重新引导系统以后系统会自动运行quotacheck命令，在大型系统中运行quotacheck非常耗时
+quotachek -va
+-v 报告用户配额
+-a 报告所有文件系统
+
+启用配额
+quotaon /data
+
+检查是否生效
+repquota -va
+
+关闭配额
+quotaoff -v /data
+
+使用webmin管理磁盘文件系统
+---
