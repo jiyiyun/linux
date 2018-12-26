@@ -273,10 +273,12 @@ FORMAT MENU:
         quit
 format> quit        #退出format
 
-namefs建立新文件系统,类似于linux xfs_extend  mkfs.ext4,linux 如果是增大原来的分区还需要resize
+namefs建立新文件系统,类似于linux xfs_extend  mkfs.ext4,linux 如果是增大原来的分区
+还需要resize
 ---
 
-root@solaris:/# newfs /dev/rdsk/c2t1d0s2      #c2t1d0s2设备编号，formart命令开始执行的时候可以看到3个device
+root@solaris:/# newfs /dev/rdsk/c2t1d0s2      #c2t1d0s2设备编号，formart命令开始执
+行的时候可以看到3个device
   
 newfs: construct a new file system /dev/rdsk/c2t1d0s2: (y/n)? y
 Warning: 1564 sector(s) in last cylinder unallocated
@@ -355,7 +357,7 @@ OpemSolaris UFS文件系统管理
 ===
 
 文件系统或目录      文件系统类型  说明
-/                    UFS          分层文件树的顶层，包含对存储系统至关重要的文件如kernel、drivers、引导程序
+/                    UFS          文件树的顶层，包含重要的文件如kernel、drivers、引导程序
 /var                 UFS          随系统日渐增长的文件和目录，包括:logs,vi和ex备份文件及uucp文件
 /opt                 UFS或NFS     第三方软件的可选挂载点
 /tmp                 UFS          临时文件，每次引导系统或取消挂载/tmp将会删除这些文件
@@ -412,12 +414,15 @@ root@solaris:~# fuser /dev/dsk/c2t1d0s2
 修复维护UFS系统
 ---
 
-UFS系统依赖于一组内部表来跟踪已用的inode和可用块，当内部表和磁盘上的数据未正确同步时会导致不一致问题从而需要修复
+UFS系统依赖于一组内部表来跟踪已用的inode和可用块，当内部表和磁盘上的数据
+未正确同步时会导致不一致问题从而需要修复
 电源故障
 以外关闭系统电源
 没有正确的关闭系统
 内核中出现的软件错误
-系统引导时，会自动执行文件系统一致性检查(fsck),通常会修复遇到的问题，文件系统检查是fsck(file system check)实现的，fsck将已分配但没有说明来源的文件和目录放在lost+found目录下，如果目录不存在，fsck建立
+系统引导时，会自动执行文件系统一致性检查(fsck),通常会修复遇到的问题，文件
+系统检查是fsck(file system check)实现的，
+fsck将已分配但没有说明来源的文件和目录放在lost+found目录下，如果目录不存在，fsck建立
 
 fsck
 root@solaris:~# fsck --help
@@ -506,7 +511,8 @@ fsck -o p /export/home
 UFS文件系统设置配额
 ---
 
-配额管理员可以控制UFS文件系统的大小，配额会限制磁盘空间量和inode数量，这些数量和各个用户获取的文件数量大致对应，配额在用户起始目录驻留的文件系统中特别有用，
+配额管理员可以控制UFS文件系统的大小，配额会限制磁盘空间量和inode数量，这些数量和各个
+用户获取的文件数量大致对应，配额在用户起始目录驻留的文件系统中特别有用，
 配额可更改，可删除
 
 例如 在磁盘/dev/dsk/c2t1d0s2 的mount挂载点/data 建立磁盘配额,在mount option字段中添加rq
