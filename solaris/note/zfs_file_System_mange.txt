@@ -149,3 +149,372 @@ root@solaris:~# fsstat zfs
 
 二、使用web管理ZFS文件系统
 java web console
+
+
+配置存储池
+===
+
+1、建立简单的存储池
+---
+
+查看有没有空余磁盘dev
+root@solaris:~# format 
+Searching for disks...done
+
+
+AVAILABLE DISK SELECTIONS:
+       0. c2t0d0 <VMware,-VMware Virtual S-1.0-50.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@0,0
+       1. c2t1d0 <VMware,-VMware Virtual S-1.0-16.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@1,0
+       2. c2t2d0 <VMware,-VMware Virtual S-1.0-16.00GB>
+          /pci@0,0/pci15ad,1976@10/sd@2,0
+Specify disk (enter its number): ^Z
+
+[1]+  Stopped                 format
+
+选择在c2t2d0 上创建新的磁盘dev
+root@solaris:~# zpool create zfstest c2t2d0
+root@solaris:~# 
+root@solaris:~# zpool destroy zfstest 
+
+创建mirror,在dev 1 和dev 2上创建
+root@solaris:~# zpool create tank mirror c2t2d0 c2t1d0
+
+创建RAID-Z池
+root@solaris:~# zpool create tank raidz /dev/dsk/c2t1d0
+Unable to build pool from specified devices: invalid vdev specification: raidz requires at least 2 devices
+root@solaris:~# zpool create tank raidz /dev/dsk/c2t1d0 c2t2d0
+vdev verification failed: use -f to override the following errors:
+/dev/dsk/c2t1d0s0 is part of active ZFS pool tank. Please see zpool(8).
+/dev/dsk/c2t2d0s0 is part of active ZFS pool tank. Please see zpool(8).
+Unable to build pool from specified devices: device already in use
+已经存在无法创建，使用zpoop destory删除
+root@solaris:~# zpool destroy tank
+root@solaris:~# zpool list
+NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+rpool  49.5G  5.09G  44.4G  10%  1.00x  ONLINE  -
+创建RAID-Z池
+root@solaris:~# zpool create tank raidz /dev/dsk/c2t1d0 c2t2d0
+root@solaris:~# zpool list
+NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+rpool  49.5G  5.09G  44.4G  10%  1.00x  ONLINE  -
+tank   31.8G   216K  31.7G   0%  1.00x  ONLINE  -
+
+删除存储池
+root@solaris:~# zpool create tank raidz /dev/dsk/c2t1d0 c2t2d0
+root@solaris:~# zpool list
+NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+rpool  49.5G  5.09G  44.4G  10%  1.00x  ONLINE  -
+tank   31.8G   216K  31.7G   0%  1.00x  ONLINE  -
+
+root@solaris:~# zpool destroy tank
+root@solaris:~# zpool list
+NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+rpool  49.5G  5.09G  44.4G  10%  1.00x  ONLINE  -
+
+存储池删除以后数据也会丢失
+有时候需要强制删除 zpool destory -f 
+
+查看zpool list
+root@solaris:~# zpool list
+NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+rpool  49.5G  5.09G  44.4G  10%  1.00x  ONLINE  -
+tank   31.8G   216K  31.7G   0%  1.00x  ONLINE  -
+root@solaris:~# 
+ONLINE    正常
+DEGRADED  故障但是可以工作
+FAULTED   完全无法访问
+OFFLINE   脱机
+UNAVAILABLE   无法打开
+REMOVED   已移除
+
+
+查看zpool I/O统计信息
+root@solaris:~# zpool iostat
+          capacity     operations    bandwidth
+pool   alloc   free   read  write   read  write
+-----  -----  -----  -----  -----  -----  -----
+rpool  5.09G  44.4G      0      6  27.7K  46.1K
+tank    150K  31.7G      0      2    219  2.63K
+-----  -----  -----  -----  -----  -----  -----
+root@solaris:~# 
+
+root@solaris:~# zpool status -x
+all pools are healthy
+root@solaris:~# 
+
+管理ZFS文件系统
+---
+
+zfs create 创建zfs文件系统
+root@solaris:~# zfs create tank/home
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+tank                               112K  15.6G    32K  /tank
+tank/home                           31K  15.6G    31K  /tank/home
+
+zfs destory 删除文件系统
+root@solaris:~# zfs destroy tank/home     #zfs destory 
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+tank                                76K  15.6G    31K  /tank
+root@solaris:~# 
+
+root@solaris:~# zfs create tank/home        
+root@solaris:~# zfs create tank/home/richard
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+tank                               150K  15.6G    32K  /tank
+tank/home                           63K  15.6G    32K  /tank/home
+tank/home/richard                   31K  15.6G    31K  /tank/home/richard
+
+zfs destory -r 级联删除
+root@solaris:~# zfs create tank/home        
+root@solaris:~# zfs create tank/home/richard
+root@solaris:~# zfs destroy tank/home
+cannot destroy 'tank/home': filesystem has children
+use '-r' to destroy the following datasets:
+tank/home/richard
+root@solaris:~# zfs destroy -r tank/home
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+tank                                79K  15.6G    31K  /tank
+root@solaris:~#
+
+zfs rename 重命名
+root@solaris:~# zfs create tank/home
+root@solaris:~# zfs create tank/home/richard
+root@solaris:~# zfs rename tank/home/richard tank/home/mark
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+tank                               155K  15.6G    32K  /tank
+tank/home                           63K  15.6G    32K  /tank/home
+tank/home/mark                      31K  15.6G    31K  /tank/home/mark
+
+更改文件位置(必须在同一个zpool中)
+root@solaris:~# zfs create tank/tmp 
+root@solaris:~# zfs rename tank/home/mark tank/tmp/richard
+root@solaris:~# zfs list
+NAME                               USED  AVAIL  REFER  MOUNTPOINT
+tank                               195K  15.6G    33K  /tank
+tank/home                           31K  15.6G    31K  /tank/home
+tank/tmp                            63K  15.6G    32K  /tank/tmp
+tank/tmp/richard                    31K  15.6G    31K  /tank/tmp/richard
+
+文件系统监视工具
+root@solaris:~# fsstat zfs
+ new  name   name  attr  attr lookup rddir  read read  write write
+ file remov  chng   get   set    ops   ops   ops bytes   ops bytes
+7.61K 5.14K 1.53K  383K   459  1.79M 12.1K  136K  501M 23.9K  287M zfs
+
+root@solaris:~# df -h
+Filesystem             Size   Used  Available Capacity  Mounted on
+tank/home               16G    31K        16G     1%    /tank/home
+tank/tmp                16G    32K        16G     1%    /tank/tmp
+tank/tmp/richard        16G    31K        16G     1%    /tank/tmp/richard
+root@solaris:~# cd /tank/
+root@solaris:/tank# ls
+home  tmp
+root@solaris:/tank# 
+
+
+安装、卸载、共享、zfs文件系统
+---
+
+默认情况下，所有ZFS文件系统在系统启动时被服务svs://system/filesystem/local所自动安装(mount),ZFS文件系统被安装到一个目录下(比如tank),这个目录默认也是
+文件系统的名字，使用zfs set命令来改变默认安装点的属性，可以使用zfs mount -a
+命令安装文件系统，而不能使用/etc/vfstab， mountpoint属性可继承，例如;
+如果pool/home 有个安装点在/export/stuff这个pool/none/user就继承了
+/export/stuff/user作为安装点，我们可以将mountpoint的属性设置成为none来防止
+文件系统被安装上，为了防止ZFS自动安装管理文件系统，文件系统也能通过legacy
+来设置安装点属性，legacy工具包括mont 和umount并且/etc/vfstab必须被替换
+
+1 自动安装点
+如果mountpoint属性不是legacy或none,zfs就能自动安装这个文件系统，如果zfs管理
+文件系统，但当前是在卸载状态，这个时候安装点属性改变文件系统将保留卸载状态
+根据数据集默认安装点在创建时使用zpool create -m 指定目录，任何创建的安装点
+都不是被继承的，而是通过ZFS管理的
+
+创建pool/filesystem文件系统
+root@solaris:/tank# zfs create rpool/tank
+root@solaris:/tank# zfs get mountpoint rpool/tank
+NAME        PROPERTY    VALUE        SOURCE
+rpool/tank  mountpoint  /rpool/tank  default
+root@solaris:/tank# 
+
+遗留的legacy
+可以使用legacy工具设置安装点属性，遗留的文件系统通过mount和umount命令和
+etc/vfstab来管理 
+
+手动安装文件系统
+root@solaris:/# zfs mount
+tank/home                       /tank/home
+tank/tmp                        /tank/tmp
+tank/tmp/richard                /tank/tmp/richard
+rpool/tank                      /rpool/tank
+
+卸载文件系统zfs umount
+
+root@solaris:/# zfs umount tank/tmp/richard
+root@solaris:/# zfs mount
+rpool/ROOT/solaris              /
+tank/home                       /tank/home
+tank/tmp                        /tank/tmp
+rpool/tank                      /rpool/tank
+
+通过安装点来卸载系统
+zfs umount /export/home/richard
+
+通过zfs mount -a 挂载已经卸载的文件系统
+root@solaris:/# zfs mount -a
+root@solaris:/# zfs mount
+tank/home                       /tank/home
+tank/tmp                        /tank/tmp
+rpool/tank                      /rpool/tank
+tank/tmp/richard                /tank/tmp/richard
+
+共享zfs系统
+---
+
+通过设置sharefs属性，ZFS能自动共享文件系统，管理员不用修改/etc/dfs/dfstab
+默认情况下是不共享的，共享使用命令
+root@solaris:/# zfs set sharenfs=on tank/home        
+root@solaris:/# zfs create tank/home/test
+root@solaris:/# zfs set sharenfs=ro tank/home/test
+cannot set property for 'tank/home/test': 'share.nfs' must be one of 'on | off'
+root@solaris:/# zfs unshare tank/home
+root@solaris:/# zfs unshare -a       
+root@solaris:/#
+
+zfs磁盘配额管理quota
+在tank/home/ba设置100MB的限额
+root@solaris:~# zfs set quota=100m tank/home/test
+root@solaris:~# df -h
+Filesystem             Size   Used  Available Capacity  Mounted on
+rpool                   49G   4.3M        44G     1%    /rpool
+rpool/tank              49G    31K        44G     1%    /rpool/tank
+tank                    16G    33K        16G     1%    /tank
+tank/home               16G    32K        16G     1%    /tank/home
+tank/home/test         100M    31K       100M     1%    /tank/home/test
+tank/tmp                16G    32K        16G     1%    /tank/tmp
+tank/tmp/richard        16G    31K        16G     1%    /tank/tmp/richard
+
+设置保留空间zfs set zfs get
+root@solaris:~# zfs set reservation=5M tank/home/reservation_test
+root@solaris:~# zfs get reservation tank/home/reservation_test
+NAME                        PROPERTY     VALUE  SOURCE
+tank/home/reservation_test  reservation  5M     local
+注意：保留空间不能大于限额
+
+ZFS文件系统备份zfs  backup 、恢复zfs restore、快照snapshot、克隆clone
+===
+
+1、备份ZFS文件系统,zfs  backup   
+---
+
+备份文件系统到磁带机
+root@solaris:~# zfs backup tank/home/test  > /dev/rmt/0
+增量备份
+root@solaris:~# zfs backup -i tank/home/test > /dev/rmt/0
+
+2、恢复ZFS文件系统zfs restore
+---
+
+
+root@solaris:~# zfs backup tank/home/test > /dev/rmt/0
+恢复前先将目前的修改 xxx.old，这样就不会被覆盖
+root@solaris:~# zfs rename tank/home/test tank/home/test.old
+root@solaris:~# zfs restore tank/home/test < /dev/rmt/0
+
+3、创建和删除快照snapshot
+---
+
+使用zfs snapshot 创建快照，该命令就一个变量就是快照的名字
+filesystem@snapshot_name
+volume@snapshot_name
+
+root@solaris:~# zfs snapshot tank/home@tank_home_bak
+查看所有快照
+root@solaris:~# zfs list -t snapshot
+NAME                             USED  AVAIL  REFER  MOUNTPOINT
+rpool/ROOT/solaris@install      70.7M      -  2.55G  -
+rpool/ROOT/solaris/var@install   947K      -   314M  -
+tank/home@tank_home_bak             0      -    33K  -
+root@solaris:~# 
+
+4、删除快照，使用zfs destroy
+---
+
+root@solaris:~# zfs destroy tank/home@tank_home_bak
+在快照存在的情况下，数据集不能删除，另外存在快照克隆，也不能删除数据集
+
+修改快照名称
+root@solaris:~# zfs rename tank/home@tank_home_snapshot tank/home@tank_home
+查看快照名称修改情况
+root@solaris:~# zfs list -t snapshot
+NAME                             USED  AVAIL  REFER  MOUNTPOINT
+rpool/ROOT/solaris@install      70.7M      -  2.55G  -
+rpool/ROOT/solaris/var@install   947K      -   314M  -
+tank/home@tank_home                 0      -    33K  -
+root@solaris:~# 
+
+5、恢复到最初快照 zfs rollback
+---
+
+创建几个快照
+root@solaris:~# zfs snapshot tank/home@tank_home_snapshot_1
+root@solaris:~# zfs snapshot tank/home@tank_home_snapshot_2
+root@solaris:~# zfs snapshot tank/home@tank_home_snapshot_3
+root@solaris:~# zfs list -t snapshot
+NAME                             USED  AVAIL  REFER  MOUNTPOINT
+rpool/ROOT/solaris@install      70.7M      -  2.55G  -
+rpool/ROOT/solaris/var@install   947K      -   314M  -
+tank/home@tank_home                1K      -    33K  -
+tank/home@tank_home_snapshot_1      0      -    33K  -
+tank/home@tank_home_snapshot_2      0      -    33K  -
+tank/home@tank_home_snapshot_3      0      -    33K  -
+
+恢复到最初快照
+root@solaris:~# zfs rollback tank/home@tank_home_snapshot_1
+cannot rollback to 'tank/home@tank_home_snapshot_1': more recent snapshots exist
+use '-r' to force deletion of the following snapshots:
+tank/home@tank_home_snapshot_3
+tank/home@tank_home_snapshot_2
+如果没有加-r就报错
+root@solaris:~# zfs rollback tank/home@tank_home_snapshot_3
+恢复到最近这个就不报错
+
+root@solaris:~# zfs rollback -r tank/home@tank_home_snapshot_1
+使用-r参数可以恢复到最初快照
+root@solaris:~# zfs list -t snapshot
+NAME                             USED  AVAIL  REFER  MOUNTPOINT
+rpool/ROOT/solaris@install      70.7M      -  2.55G  -
+rpool/ROOT/solaris/var@install   947K      -   314M  -
+tank/home@tank_home                1K      -    33K  -
+tank/home@tank_home_snapshot_1     1K      -    33K  -
+root@solaris:~# 
+恢复到最初快照，自动删除后面的快照
+
+ZFS文件系统的克隆clone
+---
+
+创建克隆clone
+root@solaris:~# zfs clone tank/home@tank_home_snapshot_1 tank/home/snapshot_clone
+
+删除克隆clone
+在删除克隆的快照前，必须先删除克隆
+root@solaris:~# zfs destroy tank/home/snapshot_clone
+
+使用web浏览器管理ZFS文件系统
+java web console
+
+
+LUN 全称是Logical Unit Number
+target
+
+solaris 软件安装
+以iSCSI客户端为例
+root@solaris:~# pkg install SUNWiscsi   #个人点评，有点类似debian
+
+
