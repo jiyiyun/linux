@@ -81,5 +81,20 @@ Some useful pyenv commands are:
 
 
 virtualenv虚拟环境，可以隔离多个python版本
+```
+```txt
+centos安装python 3.7.1过程报错
+    from _ctypes import Union, Structure, Array
+ModuleNotFoundError: No module named '_ctypes'
+解决办法
+$ sudo yum install zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel
 
+ubuntu安装python3.7.1解决办法
+Ubuntu/Debian:
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+
+参考资料
+https://github.com/pyenv/pyenv/wiki/common-build-problems
 ```
