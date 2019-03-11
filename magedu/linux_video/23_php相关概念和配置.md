@@ -1,6 +1,5 @@
 
-PHP is Hypertext Processor 超文本预处理，解释型语言
-
+PHP is Hypertext Processor 超文本预处理，解释型语言,apache DSO dynamic shared object
 bash: 词法分析、语法分析、生成执行路径、opcode操作码，Zend引擎
 
 Scanning -->
@@ -42,3 +41,19 @@ php-5.4.16-46.el7.x86_64
 /usr/share/httpd/icons/php.gif
 /var/lib/php/session
 ```
+```txt
+[root@bogon html]# cat index.php
+<title> Hello PHP </title>
+<body>
+<h1>《春夜喜雨》 杜甫</h1>
+<h1>好雨知时节，当春乃发生。</h1>
+<h1>随风潜入夜，润物细无声。</h1>
+<h1>野径云俱黑，江船火独明。</h1>
+<h1>晓看红湿处，花重锦官城。</h1>
+</body>
+
+<?php
+phpinfo():
+?>
+```
+
